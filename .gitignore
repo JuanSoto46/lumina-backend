@@ -1,0 +1,77 @@
+# ===========================
+# Backend Node.js / Express
+# ===========================
+
+# Dependencias
+node_modules/
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Builds y coverage
+dist/
+build/
+coverage/
+.tmp/
+.cache/
+.next/
+out/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs / editores
+.vscode/
+.idea/
+*.swp
+
+# Archivos temporales
+*.pid
+*.seed
+*.tgz
+*.tar.gz
+
+# Configuración específica de sistema
+*.local
+*.bak
+*.backup
+
+# Docker
+docker-compose.override.yml
+*.pid
+*.sock
+
+# Archivos de pruebas locales
+jest-cache/
+jest-html-reporters-*
+*.test.js.snap
+
+# Otros artefactos
+*.pem
+*.key
+*.crt
+
+# PM2 (si usas)
+pids/
+logs/
+pmm.log
+
+# TypeScript (si usas)
+*.tsbuildinfo
+
+# ---------------------------
+# Si agregas frontend o build
+# ---------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.env
