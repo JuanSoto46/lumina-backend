@@ -61,17 +61,14 @@ jest-html-reporters-*
 *.key
 *.crt
 
-# PM2 (si usas)
+
 pids/
 logs/
 pmm.log
 
-# TypeScript (si usas)
 *.tsbuildinfo
 
-# ---------------------------
-# Si agregas frontend o build
-# ---------------------------
+
 frontend/node_modules/
 frontend/dist/
 frontend/.env
