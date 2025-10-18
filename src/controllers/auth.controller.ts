@@ -5,6 +5,21 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendMail } from "../utils/mail.js";
 
+/**
+ * The function `signUp` handles user sign-up requests by checking for missing fields, existing email,
+ * hashing the password, and creating a new user in a database.
+ * @param {Request} req - The `req` parameter in the `signUp` function represents the request object,
+ * which contains information about the HTTP request that triggered the function. This object typically
+ * includes details such as the request headers, body, parameters, and other relevant data sent by the
+ * client to the server. In this case,
+ * @param {Response} res - The `res` parameter in the `signUp` function is an object representing the
+ * HTTP response that the server sends back to the client. It allows you to send data back to the
+ * client, such as status codes, headers, and response body. In this function, `res` is used to
+ * @returns The `signUp` function returns a JSON response with the user's id and email if the user was
+ * successfully created. If any required fields are missing in the request body, it returns a 400
+ * status with a message "Missing fields". If the email provided already exists in the database, it
+ * returns a 409 status with a message "Email already registered".
+ */
 export async function signUp(req: Request, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
   if (!firstName || !lastName || !age || !email || !password) {

@@ -1,12 +1,28 @@
+/* This TypeScript code snippet is setting up an Express server to interact with the Pexels API for
+fetching videos. Here's a breakdown of what each part of the code is doing: */
 import { Request, Response } from "express";
 import { createClient } from "pexels";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const client = createClient(process.env.PEXELS_API_KEY as string);
+let client: any = null;
+
+if (process.env.PEXELS_API_KEY) {
+  client = createClient(process.env.PEXELS_API_KEY);
+  console.log("✅ Pexels client initialized");
+} else {
+  console.warn("⚠️  PEXELS_API_KEY not configured - Pexels endpoints will return errors");
+}
 
 export const getPopularVideos = async (_req: Request, res: Response) => {
+  if (!client) {
+    return res.status(500).json({ 
+      error: "Pexels API not configured", 
+      message: "PEXELS_API_KEY environment variable is required" 
+    });
+  }
+  
   try {
     const data = await client.videos.popular({ per_page: 3 });
     if ('videos' in data) {
@@ -51,7 +67,7 @@ export const getVideos = async (req: Request, res: Response) => {
     if (query && terms) {
       // If both are present, combine them
       const termsArray = terms.split(",").map(term => term.trim()).filter(Boolean);
-      searchQuery = ${query} ${termsArray.join(" ")};
+      searchQuery = `${query} ${termsArray.join(" ")}`;
     } else if (terms) {
       // Multiple terms only
       const termsArray = terms.split(",").map(term => term.trim()).filter(Boolean);

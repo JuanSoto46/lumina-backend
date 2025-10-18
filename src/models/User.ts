@@ -1,3 +1,6 @@
+/* This TypeScript code snippet defines a middleware function named `requireAuth` for Express.js that
+enforces authentication using JSON Web Tokens (JWT). Here's a breakdown of what each part of the
+code does: */
 import mongoose from "mongoose";
 
 export interface IUser extends mongoose.Document {

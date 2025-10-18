@@ -1,3 +1,6 @@
+/* This TypeScript code snippet is setting up routes and functions to interact with the Pexels API for
+fetching popular videos, searching videos based on query and terms, getting a video by ID, and
+performing a health check on the API endpoints. */
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { User } from "../models/User.js";
