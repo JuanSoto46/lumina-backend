@@ -5,6 +5,8 @@ import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { validatePasswordStrength } from "../utils/validatePassword.js";
+
 
 export async function me(req: AuthRequest, res: Response) {
   const user = await User.findById(req.userId).select("-passwordHash");
@@ -30,9 +32,13 @@ export async function changePassword(req: any, res: Response) {
   if (!currentPassword || !newPassword || !confirmPassword) {
     return res.status(400).json({ message: "Missing fields" });
   }
-  if (newPassword !== confirmPassword) {
+   if (newPassword !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
+
+  const err = validatePasswordStrength(newPassword);
+  if (err) return res.status(400).json({ message: err });
+
   const user = await User.findById(req.userId);
   if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -42,4 +48,5 @@ export async function changePassword(req: any, res: Response) {
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   await user.save();
   return res.json({ message: "Password changed" });
+
 }

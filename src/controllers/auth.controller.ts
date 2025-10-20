@@ -5,18 +5,31 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendMail } from "../utils/mail.js";
+import { validatePasswordStrength } from "../utils/validatePassword.js"; 
+
 
 export async function signUp(req: Request, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
   if (!firstName || !lastName || !age || !email || !password) {
     return res.status(400).json({ message: "Missing fields" });
   }
+
+  if (age < 18) {
+    return res.status(400).json({ message: "You must be at least 18 years old to register." });
+  }
+
+  // ✅ Nueva validación de fuerza de contraseña
+  const err = validatePasswordStrength(password);
+  if (err) return res.status(400).json({ message: err });
+
   const exists = await User.findOne({ email });
   if (exists) return res.status(409).json({ message: "Email already registered" });
+
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({ firstName, lastName, age, email, passwordHash });
   return res.status(201).json({ id: user.id, email: user.email });
 }
+
 
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
@@ -73,12 +86,18 @@ export async function forgotPassword(req: Request, res: Response) {
 
 export async function resetPassword(req: Request, res: Response) {
   const { token, password, confirmPassword } = req.body;
+
   if (!token || !password || !confirmPassword) {
     return res.status(400).json({ message: "Missing fields" });
   }
+
   if (password !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
+
+  // ✅ Validación centralizada
+  const err = validatePasswordStrength(password);
+  if (err) return res.status(400).json({ message: err });
 
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const user = await User.findOne({
@@ -92,7 +111,6 @@ export async function resetPassword(req: Request, res: Response) {
   user.passwordResetTokenHash = undefined;
   user.passwordResetTokenExp = undefined;
 
-  // Limpia legacy por si acaso
   user.resetToken = undefined;
   user.resetTokenExp = undefined;
 
@@ -100,3 +118,5 @@ export async function resetPassword(req: Request, res: Response) {
 
   return res.json({ message: "Password updated" });
 }
+
+
