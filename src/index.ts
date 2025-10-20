@@ -1,9 +1,15 @@
+/**
+ * This TypeScript script sets up an Express server with routes for authentication and user operations,
+ * connecting to a MongoDB database and listening on a specified port.
+ */
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
+import pexelsRoutes from "./routes/pexels.js";
 
 dotenv.config();
 
@@ -17,6 +23,7 @@ app.get("/", (_req, res) => res.send("API up"));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/pexels", pexelsRoutes);
 
 async function start() {
   try {

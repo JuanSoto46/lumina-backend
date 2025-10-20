@@ -1,3 +1,5 @@
+/* This TypeScript code snippet is defining a middleware function for Express.js that enforces
+authentication using JSON Web Tokens (JWT). Here's a breakdown of what each part does: */
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 

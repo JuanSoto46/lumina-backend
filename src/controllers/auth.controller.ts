@@ -1,3 +1,4 @@
+// src/controllers/auth.controller.ts
 import { Request, Response } from "express";
 import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
@@ -29,25 +30,73 @@ export async function login(req: Request, res: Response) {
 
 export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email required" });
+
   const user = await User.findOne({ email });
-  if (!user) return res.status(200).json({ message: "If the email exists, a reset was sent" });
+  // Respuesta neutra para no filtrar usuarios
+  if (!user) return res.json({ message: "If the email exists, a reset was sent" });
+
+  // Genera token y guarda SOLO el hash + expiración
   const token = crypto.randomBytes(32).toString("hex");
-  const exp = new Date(Date.now() + 1000 * 60 * 30);
-  user.resetToken = token;
-  user.resetTokenExp = exp;
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const exp = new Date(Date.now() + 60 * 60 * 1000);
+
+  user.passwordResetTokenHash = tokenHash;
+  user.passwordResetTokenExp = exp;
+
+  // Limpia campos legacy si existieran
+  user.resetToken = undefined;
+  user.resetTokenExp = undefined;
+
   await user.save();
-  const link = `${process.env.CLIENT_URL}/reset?token=${token}&email=${encodeURIComponent(email)}`;
-  await sendMail(email, "Reset your password", `<p>Reset link valid 30 minutes:</p><p><a href="${link}">${link}</a></p>`);
+
+  const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0];
+  const resetUrl = `${clientUrl}/reset?token=${token}`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif">
+      <h2>Restablecer tu contraseña</h2>
+      <p>Vence en <b>60 minutos</b>.</p>
+      <p><a href="${resetUrl}" style="background:#4f46e5;color:#fff;padding:12px 18px;border-radius:8px;text-decoration:none">Restablecer contraseña</a></p>
+      <p>Si no funciona el botón, copia este enlace:<br>${resetUrl}</p>
+    </div>
+  `;
+
+  try {
+    await sendMail({ to: email, subject: "Restablece tu contraseña", html });
+  } catch (e: any) {
+    return res.status(502).json({ message: "Email service error", detail: e.message });
+  }
+
   return res.json({ message: "If the email exists, a reset was sent" });
 }
 
 export async function resetPassword(req: Request, res: Response) {
-  const { email, token, newPassword } = req.body;
-  const user = await User.findOne({ email, resetToken: token, resetTokenExp: { $gt: new Date() } });
+  const { token, password, confirmPassword } = req.body;
+  if (!token || !password || !confirmPassword) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetTokenHash: tokenHash,
+    passwordResetTokenExp: { $gt: new Date() },
+  });
+
   if (!user) return res.status(400).json({ message: "Invalid or expired token" });
-  user.passwordHash = await bcrypt.hash(newPassword, 10);
+
+  user.passwordHash = await bcrypt.hash(password, 10);
+  user.passwordResetTokenHash = undefined;
+  user.passwordResetTokenExp = undefined;
+
+  // Limpia legacy por si acaso
   user.resetToken = undefined;
   user.resetTokenExp = undefined;
+
   await user.save();
+
   return res.json({ message: "Password updated" });
 }
