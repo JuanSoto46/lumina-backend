@@ -89,20 +89,20 @@ extra.forEach(o => BASE_ALLOWED.add(o));
  * // - Custom origins from CORS_EXTRA_ORIGINS env var
  */
 function corsOrigin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) {
-  // Requests sin origin (curl, healthchecks) se aceptan
+  // Allow requests without origin (CLI, health checks)
   if (!origin) return cb(null, true);
 
-  // Local explícito
+  // Allow explicit local origins
   if (BASE_ALLOWED.has(origin)) return cb(null, true);
 
   try {
     const u = new URL(origin);
-    // Cualquier subdominio *.vercel.app en https
+    // Allow HTTPS subdomains under *.vercel.app
     if (u.protocol === "https:" && VERCEL_REGEX.test(u.hostname)) {
       return cb(null, true);
     }
   } catch {
-    // origin inválido → cae al deny
+    // Invalid origin → falls through to deny
   }
 
   cb(new Error(`CORS blocked for origin: ${origin}`));

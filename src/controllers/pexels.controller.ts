@@ -58,7 +58,7 @@ export const getPopularVideos = async (_req: Request, res: Response) => {
   
   try {
     const data = await client.videos.popular({ per_page: 3 });
-    if ('videos' in data) {
+    if ("videos" in data) {
       res.json(data.videos);
     } else {
       res.status(500).json({ error: "Failed to fetch popular videos" });
@@ -92,7 +92,7 @@ export const getPopularVideos = async (_req: Request, res: Response) => {
 export const getPeliculas = async (_req: Request, res: Response) => {
   try {
     const data = await client.videos.popular({ per_page: 3 });
-    if ('videos' in data) {
+    if ("videos" in data) {
       res.json(data);
     } else {
       res.status(500).json({ error: "Failed to fetch popular videos" });
@@ -146,27 +146,24 @@ export const getVideos = async (req: Request, res: Response) => {
     let searchQuery = "";
 
     if (query && terms) {
-      // If both are present, combine them
       const termsArray = terms.split(",").map(term => term.trim()).filter(Boolean);
       searchQuery = `${query} ${termsArray.join(" ")}`;
     } else if (terms) {
-      // Multiple terms only
       const termsArray = terms.split(",").map(term => term.trim()).filter(Boolean);
       if (termsArray.length === 0) {
         return res.status(400).json({ error: "Invalid terms format" });
       }
       searchQuery = termsArray.join(" ");
     } else {
-      // Simple query only
       searchQuery = query;
     }
 
     const data = await client.videos.search({ 
       query: searchQuery, 
-      per_page: Math.min(per_page, 80) // Limit to maximum 80 as allowed by Pexels
+      per_page: Math.min(per_page, 80)
     });
     
-    if ('videos' in data) {
+    if ("videos" in data) {
       res.json(data);
     } else {
       res.status(500).json({ error: "Failed to search videos" });
@@ -205,7 +202,7 @@ export const getVideoById = async (req: Request, res: Response) => {
 
   try {
     const video = await client.videos.show({ id });
-    if ('id' in video) {
+    if ("id" in video) {
       res.json(video);
     } else {
       res.status(404).json({ error: "Video not found" });

@@ -13,6 +13,7 @@ import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { validatePasswordStrength } from "../utils/validatePassword.js";
 
 /**
  * Retrieves the authenticated user's profile information.
@@ -74,7 +75,10 @@ export async function me(req: AuthRequest, res: Response) {
 export async function updateMe(req: AuthRequest, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
   const updates: any = { firstName, lastName, age, email };
+
+  // If user wants to change password, hash it before saving
   if (password) updates.passwordHash = await bcrypt.hash(password, 10);
+
   const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select("-passwordHash");
   return res.json(user);
 }
@@ -149,19 +153,31 @@ export async function deleteMe(req: AuthRequest, res: Response) {
  */
 export async function changePassword(req: any, res: Response) {
   const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  // Basic field validation
   if (!currentPassword || !newPassword || !confirmPassword) {
     return res.status(400).json({ message: "Missing fields" });
   }
+
+  // Check new password confirmation
   if (newPassword !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
+
+  // Validate password strength
+  const err = validatePasswordStrength(newPassword);
+  if (err) return res.status(400).json({ message: err });
+
+  // Find user and validate current password
   const user = await User.findById(req.userId);
   if (!user) return res.status(404).json({ message: "User not found" });
 
   const ok = await bcrypt.compare(currentPassword, user.passwordHash);
   if (!ok) return res.status(400).json({ message: "Current password incorrect" });
 
+  // Save new password securely
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   await user.save();
+
   return res.json({ message: "Password changed" });
 }
