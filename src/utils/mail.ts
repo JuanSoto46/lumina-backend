@@ -31,16 +31,26 @@ export async function sendMail({ to, subject, html, replyTo, text }: SendEmailOp
       html,
       text: text || html.replace(/<[^>]+>/g, ""),
       replyTo: replyTo || process.env.REPLY_TO || from,
-      // mailSettings: { sandboxMode: { enable: false } }, // por si tocaste esto en dashboard
     });
-    // Log mínimo para trazabilidad
-    console.log("[sendMail] ok", { to, status: resp.statusCode, requestId: resp.headers["x-message-id"] || resp.headers["x-request-id"] });
+    console.log("[sendMail] ok", {
+      to,
+      status: resp.statusCode,
+      requestId: resp.headers["x-message-id"] || resp.headers["x-request-id"],
+    });
     return true;
   } catch (err: any) {
-    // Saca TODO lo útil
     const status = err?.code || err?.response?.statusCode;
     const body = err?.response?.body;
-    console.error("[sendMail] fail", { to, status, body });
-    throw new Error(body?.errors?.[0]?.message || body?.message || err?.message || "SendMail failed");
+    console.error("[sendMail] fail", {
+      to,
+      status,
+      body: body ? JSON.stringify(body, null, 2) : err?.message,
+    });
+    throw new Error(
+      body?.errors?.[0]?.message ||
+      body?.message ||
+      err?.message ||
+      "Email service error"
+    );
   }
 }
