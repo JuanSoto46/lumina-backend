@@ -9,5 +9,6 @@ router.post("/signup", signUp);
 router.post("/login", login);
 router.post("/forgot", forgotPassword);
 router.post("/reset", resetPassword);
+router.post("/")
 
 export default router;
