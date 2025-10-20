@@ -7,7 +7,18 @@ import crypto from "crypto";
 import { sendMail } from "../utils/mail.js";
 import { validatePasswordStrength } from "../utils/validatePassword.js"; 
 
-
+/**
+ * Registers a new user in the database.
+ * 
+ * Validates required fields, ensures the user is 18 or older,
+ * checks password strength, hashes the password, and saves the user.
+ *
+ * @async
+ * @function signUp
+ * @param {Request} req - Express request object containing user data.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON response with created user info or error message.
+ */
 export async function signUp(req: Request, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
   if (!firstName || !lastName || !age || !email || !password) {
@@ -30,7 +41,18 @@ export async function signUp(req: Request, res: Response) {
   return res.status(201).json({ id: user.id, email: user.email });
 }
 
-
+/**
+ * Authenticates a user and returns a JWT token.
+ *
+ * Checks email and password, verifies credentials using bcrypt,
+ * and signs a JWT with the user ID.
+ *
+ * @async
+ * @function login
+ * @param {Request} req - Express request object containing credentials.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON response with JWT token or error message.
+ */
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -41,6 +63,20 @@ export async function login(req: Request, res: Response) {
   return res.json({ token });
 }
 
+/**
+ * Initiates the password reset process by sending an email with a reset link.
+ *
+ * Generates a secure token, hashes it, stores it with expiration in the user document,
+ * and sends a password reset email to the user. Returns a neutral response
+ * to avoid disclosing whether the email exists.
+ *
+ * @async
+ * @function forgotPassword
+ * @param {Request} req - Express request object containing user's email.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON response indicating email was sent (neutral).
+ *
+ */
 export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email required" });
@@ -84,6 +120,18 @@ export async function forgotPassword(req: Request, res: Response) {
   return res.json({ message: "If the email exists, a reset was sent" });
 }
 
+/**
+ * Resets the user's password using a valid reset token.
+ *
+ * Validates the provided token and new password, verifies expiration,
+ * hashes the new password, and clears reset fields.
+ *
+ * @async
+ * @function resetPassword
+ * @param {Request} req - Express request object containing token and new passwords.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON response indicating success or failure.
+ */
 export async function resetPassword(req: Request, res: Response) {
   const { token, password, confirmPassword } = req.body;
 
