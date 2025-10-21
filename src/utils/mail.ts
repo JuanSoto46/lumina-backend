@@ -141,7 +141,7 @@ export async function sendMail({ to, subject, html, replyTo, text }: SendEmailOp
       from,
       subject,
       html,
-      text: text || html.replace(/<[^>]+>/g, ""),
+      text: text || html.replace(/<[^>]+>/g, ""), // Fallback to stripped text
       replyTo: replyTo || process.env.REPLY_TO || from,
       // mailSettings: { sandboxMode: { enable: false } }, // por si tocaste esto en dashboard
     });
