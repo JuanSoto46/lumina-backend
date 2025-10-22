@@ -1,4 +1,9 @@
-// src/controllers/auth.controller.ts
+/**
+ * @fileoverview Authentication controller for user registration, login, and password reset functionality.
+ * @module controllers/auth.controller
+ * @version 1.0.0
+ */
+
 import { Request, Response } from "express";
 import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
@@ -8,6 +13,7 @@ import { sendMail } from "../utils/mail.js";
 import { validatePasswordStrength } from "../utils/validatePassword.js"; 
 
 /**
+<<<<<<< HEAD
  * Registers a new user in the database.
  * 
  * Validates required fields, ensures the user is 18 or older,
@@ -18,6 +24,23 @@ import { validatePasswordStrength } from "../utils/validatePassword.js";
  * @param {Request} req - Express request object containing user data.
  * @param {Response} res - Express response object.
  * @returns {Promise<Response>} JSON response with created user info or error message.
+=======
+ * Registers a new user in the system.
+ * 
+ * @async
+ * @function signUp
+ * @param {Request} req - Express request object containing user registration data
+ * @param {string} req.body.firstName - User's first name
+ * @param {string} req.body.lastName - User's last name
+ * @param {number} req.body.age - User's age
+ * @param {string} req.body.email - User's email address
+ * @param {string} req.body.password - User's plain text password (will be hashed)
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with user ID and email on success, or error message
+ * @throws {400} Missing required fields
+ * @throws {409} Email already registered
+ * @throws {201} User created successfully
+>>>>>>> 2cc50127b5f8f07d4fbc239f66fde65cc3f34e7c
  */
 export async function signUp(req: Request, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
@@ -43,15 +66,21 @@ export async function signUp(req: Request, res: Response) {
 
 /**
  * Authenticates a user and returns a JWT token.
- *
- * Checks email and password, verifies credentials using bcrypt,
- * and signs a JWT with the user ID.
- *
+ * 
  * @async
  * @function login
- * @param {Request} req - Express request object containing credentials.
- * @param {Response} res - Express response object.
- * @returns {Promise<Response>} JSON response with JWT token or error message.
+ * @param {Request} req - Express request object containing login credentials
+ * @param {string} req.body.email - User's email address
+ * @param {string} req.body.password - User's plain text password
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with JWT token on success, or error message
+ * @throws {401} Invalid credentials (email not found or password incorrect)
+ * @throws {200} Login successful with JWT token
+ * 
+ * @example
+ * // POST /auth/login
+ * // Body: { email: "john@example.com", password: "password123" }
+ * // Response: { token: "jwt_token_string" }
  */
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
@@ -64,28 +93,33 @@ export async function login(req: Request, res: Response) {
 }
 
 /**
- * Initiates the password reset process by sending an email with a reset link.
- *
- * Generates a secure token, hashes it, stores it with expiration in the user document,
- * and sends a password reset email to the user. Returns a neutral response
- * to avoid disclosing whether the email exists.
- *
+ * Initiates password reset process by generating a secure token and sending reset email.
+ * 
  * @async
  * @function forgotPassword
- * @param {Request} req - Express request object containing user's email.
- * @param {Response} res - Express response object.
- * @returns {Promise<Response>} JSON response indicating email was sent (neutral).
- *
+ * @param {Request} req - Express request object containing email
+ * @param {string} req.body.email - User's email address for password reset
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Neutral success message (doesn't reveal if email exists)
+ * @throws {400} Email required
+ * @throws {502} Email service error
+ * @throws {200} Reset email sent (if email exists in database)
+ * 
+ * @description
+ * - Generates a cryptographically secure random token
+ * - Stores only the SHA256 hash of the token in database
+ * - Token expires in 60 minutes
+ * - Sends HTML email with reset link
+ * - Returns neutral response to prevent email enumeration
+ * 
  */
 export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email required" });
 
   const user = await User.findOne({ email });
-  // Respuesta neutra para no filtrar usuarios
   if (!user) return res.json({ message: "If the email exists, a reset was sent" });
 
-  // Genera token y guarda SOLO el hash + expiración
   const token = crypto.randomBytes(32).toString("hex");
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const exp = new Date(Date.now() + 60 * 60 * 1000);
@@ -93,7 +127,6 @@ export async function forgotPassword(req: Request, res: Response) {
   user.passwordResetTokenHash = tokenHash;
   user.passwordResetTokenExp = exp;
 
-  // Limpia campos legacy si existieran
   user.resetToken = undefined;
   user.resetTokenExp = undefined;
 
@@ -121,16 +154,32 @@ export async function forgotPassword(req: Request, res: Response) {
 }
 
 /**
- * Resets the user's password using a valid reset token.
- *
- * Validates the provided token and new password, verifies expiration,
- * hashes the new password, and clears reset fields.
- *
+ * Completes password reset process using a valid reset token.
+ * 
  * @async
  * @function resetPassword
- * @param {Request} req - Express request object containing token and new passwords.
- * @param {Response} res - Express response object.
- * @returns {Promise<Response>} JSON response indicating success or failure.
+ * @param {Request} req - Express request object containing reset data
+ * @param {string} req.body.token - Password reset token (raw token, not hashed)
+ * @param {string} req.body.password - New password
+ * @param {string} req.body.confirmPassword - Password confirmation (must match password)
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Success message on password update, or error message
+ * @throws {400} Missing required fields or passwords don't match
+ * @throws {400} Invalid or expired token
+ * @throws {200} Password updated successfully
+ * 
+ * @description
+ * - Validates that all required fields are present
+ * - Ensures password and confirmPassword match
+ * - Hashes the token and looks for matching user with valid expiration
+ * - Updates user password with bcrypt hash
+ * - Cleans up reset token fields from user document
+ * - Removes any legacy token fields for security
+ * 
+ * @example
+ * // POST /auth/reset-password
+ * // Body: { token: "reset_token", password: "newpassword123", confirmPassword: "newpassword123" }
+ * // Response: { message: "Password updated" }
  */
 export async function resetPassword(req: Request, res: Response) {
   const { token, password, confirmPassword } = req.body;

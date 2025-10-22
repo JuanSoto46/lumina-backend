@@ -1,13 +1,14 @@
 /**
- * @fileoverview
- * Initializes and configures an Express server for handling authentication,
- * user operations, and media routes. It connects to MongoDB, sets up CORS rules,
- * defines API routes, and starts listening on a specified port.
- *
- * The server supports flexible CORS configuration for local development,
- * Vercel deployments, and custom origins defined via environment variables.
- *
+ * @fileoverview Main server entry point for Lumina Backend API.
+ * Sets up Express server with authentication, user management, and Pexels integration.
+ * Includes flexible CORS configuration and MongoDB connection.
  * @module index
+ * @version 1.0.0
+ * @author Lumina Backend Team
+ * @requires express
+ * @requires cors
+ * @requires mongoose
+ * @requires dotenv/config
  */
 
 import "dotenv/config";
@@ -19,17 +20,41 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
 
+/**
+ * Express application instance.
+ * @type {express.Application}
+ */
 const app = express();
+
+/**
+ * Server port number from environment variable or default to 3000.
+ * @type {number}
+ * @environment PORT - Optional port number (defaults to 3000)
+ */
 const PORT = Number(process.env.PORT) || 3000;
 
-// --- CORS configuration: local + *.vercel.app + extra from environment ---
+/**
+ * Regular expression to match Vercel deployment domains.
+ * @type {RegExp}
+ * @description Matches any subdomain ending with .vercel.app (case insensitive)
+ */
 const VERCEL_REGEX = /\.vercel\.app$/i;
+
+/**
+ * Set of explicitly allowed CORS origins for local development.
+ * @type {Set<string>}
+ * @description Base set includes common local development URLs
+ */
 const BASE_ALLOWED = new Set<string>([
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ]);
 
-// Add additional allowed origins from environment variable (comma-separated)
+/**
+ * Additional CORS origins from environment variable configuration.
+ * @type {string[]}
+ * @environment CORS_EXTRA_ORIGINS - Comma-separated list of additional allowed origins
+ */
 const extra = (process.env.CORS_EXTRA_ORIGINS || "")
   .split(",")
   .map(s => s.trim())
@@ -37,15 +62,31 @@ const extra = (process.env.CORS_EXTRA_ORIGINS || "")
 extra.forEach(o => BASE_ALLOWED.add(o));
 
 /**
- * Custom CORS origin validation function.
- *
- * @param {string | undefined} origin - The origin of the incoming request.
- * @param {(err: Error | null, allow?: boolean) => void} cb - The callback to determine whether to allow or block the request.
+ * CORS origin validation function with flexible domain matching.
+ * 
+ * @function corsOrigin
+ * @param {string | undefined} origin - The origin header from the request
+ * @param {Function} cb - Callback function to indicate if origin is allowed
+ * @param {Error | null} cb.err - Error object if origin should be blocked
+ * @param {boolean} [cb.allow] - Whether to allow the origin (true/false)
+ * 
  * @description
- * - Allows requests from localhost and additional allowed origins.
- * - Accepts any HTTPS subdomain under `*.vercel.app`.
- * - Denies invalid or unapproved origins.
- * - Requests without an origin (e.g., from CLI or health checks) are automatically allowed.
+ * Implements flexible CORS policy that allows:
+ * 1. Requests without origin (curl, healthchecks, mobile apps)
+ * 2. Explicitly configured origins in BASE_ALLOWED set
+ * 3. Any HTTPS subdomain matching *.vercel.app pattern
+ * 4. Additional origins from CORS_EXTRA_ORIGINS environment variable
+ * 
+ * @security
+ * - Rejects HTTP origins on Vercel (only HTTPS allowed)
+ * - Validates URL format before checking patterns
+ * - Provides descriptive error messages for blocked origins
+ * 
+ * @example
+ * // Allowed origins:
+ * // - http://localhost:5173 (local dev)
+ * // - https://myapp-abc123.vercel.app (Vercel deployment)
+ * // - Custom origins from CORS_EXTRA_ORIGINS env var
  */
 function corsOrigin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) {
   // Allow requests without origin (CLI, health checks)
@@ -67,15 +108,27 @@ function corsOrigin(origin: string | undefined, cb: (err: Error | null, allow?: 
   cb(new Error(`CORS blocked for origin: ${origin}`));
 }
 
+/**
+ * Configure Express middleware for JSON parsing.
+ * Enables automatic parsing of JSON request bodies.
+ */
 app.use(express.json());
 
-// Log request origins for debugging
-app.use((req, _res, next) => { 
-  console.log("Origin:", req.headers.origin); 
-  next(); 
-});
+/**
+ * Debug middleware to log request origins.
+ * Helps with CORS troubleshooting during development.
+ */
+app.use((req, _res, next) => { console.log("Origin:", req.headers.origin); next(); });
 
-// Apply global CORS middleware
+/**
+ * Configure CORS middleware with flexible origin validation.
+ * @description
+ * Enables cross-origin requests with:
+ * - Dynamic origin validation via corsOrigin function
+ * - Credentials support for authenticated requests
+ * - Standard HTTP methods for REST API
+ * - Content-Type and Authorization headers
+ */
 app.use(
   cors({
     origin: corsOrigin,
@@ -85,64 +138,93 @@ app.use(
   })
 );
 
-// Handle preflight requests globally
+/**
+ * Handle preflight OPTIONS requests explicitly.
+ * Ensures proper CORS headers are sent for complex requests.
+ */
 app.options("*", cors({ origin: corsOrigin, credentials: true }));
 
-// --- Health check and base endpoints ---
 /**
- * Health check endpoint.
+ * Health check endpoint for monitoring and load balancers.
  * @route GET /health
- * @returns {object} `{ ok: true }` if the server is running.
+ * @returns {Object} Simple health status object
  */
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 /**
- * Base API endpoint.
+ * Root endpoint indicating API is operational.
  * @route GET /
- * @returns {string} A confirmation message indicating that the API is running.
+ * @returns {string} Simple "API up" message
  */
 app.get("/", (_req, res) => res.send("API up"));
 
-// --- API Routes ---
 /**
- * Authentication routes.
- * Handles sign up, login, password reset, etc.
- * @see {@link src/controllers/auth.controller.ts}
+ * Authentication routes (signup, login, password reset).
+ * @route /api/auth
+ * @see {@link ./routes/auth.js} Authentication route handlers
  */
 app.use("/api/auth", authRoutes);
 
 /**
- * User routes.
- * Handles profile management and password updates.
- * @see {@link src/controllers/user.controller.ts}
+ * User management routes (profile, settings, account operations).
+ * @route /api/users
+ * @see {@link ./routes/users.js} User route handlers
  */
 app.use("/api/users", userRoutes);
 
 /**
- * Pexels routes.
- * Provides endpoints for fetching and searching media content.
- * @see {@link src/controllers/pexels.controller.ts}
+ * Pexels API integration routes (video search, popular content).
+ * @route /api/pexels
+ * @see {@link ./routes/pexels.js} Pexels route handlers
  */
 app.use("/api/pexels", pexelsRoutes);
 
 /**
- * Initializes MongoDB connection and starts the Express server.
- *
+ * Initializes and starts the Express server with database connection.
+ * 
  * @async
  * @function start
- * @throws Will throw an error if `MONGO_URI` is missing or if the database connection fails.
+ * @returns {Promise<void>} Resolves when server starts successfully
+ * @throws {Error} Exits process with code 1 on initialization failure
+ * 
  * @description
- * Connects to MongoDB using Mongoose and starts the server on the specified port.
- * Logs connection details and allowed CORS origins.
+ * Server initialization sequence:
+ * 1. Validates required environment variables
+ * 2. Establishes MongoDB connection using Mongoose
+ * 3. Starts Express server on specified port
+ * 4. Logs server status and CORS configuration
+ * 5. Exits process on any critical errors
+ * 
+ * @environment
+ * Required environment variables:
+ * - MONGO_URI: MongoDB connection string
+ * - PORT: (Optional) Server port number (defaults to 3000)
+ * - CORS_EXTRA_ORIGINS: (Optional) Additional allowed CORS origins
+ * 
+ * @example
+ * // Environment setup
+ * MONGO_URI=mongodb://localhost:27017/lumina
+ * PORT=3000
+ * CORS_EXTRA_ORIGINS=https://mydomain.com,https://anotherdomain.com
+ * 
+ * @logging
+ * Logs include:
+ * - MongoDB connection status
+ * - Server port and host information
+ * - Complete CORS configuration summary
+ * - Additional origins from environment
  */
 async function start() {
   try {
+    // Validate required environment variables
     const MONGO_URI = process.env.MONGO_URI;
     if (!MONGO_URI) throw new Error("Missing MONGO_URI");
-
+    
+    // Connect to MongoDB database
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected");
 
+    // Start Express server
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on :${PORT}`);
       console.log("CORS allowed:");
@@ -156,4 +238,8 @@ async function start() {
   }
 }
 
+/**
+ * Start the application server.
+ * Entry point for the Lumina Backend API.
+ */
 start();
