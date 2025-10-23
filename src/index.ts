@@ -19,6 +19,7 @@ import mongoose from "mongoose";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
+import favoriteRoutes from "./routes/favorites.js"; 
 
 /**
  * Express application instance.

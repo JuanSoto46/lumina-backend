@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendMail } from "../utils/mail.js";
+import { validatePasswordStrength } from "../utils/validatePassword.js"; 
 
 /**
  * Registers a new user in the system.
