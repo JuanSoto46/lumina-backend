@@ -180,10 +180,6 @@ app.use("/api/users", userRoutes);
  */
 app.use("/api/pexels", pexelsRoutes);
 
-
-app.use("/api/favorites", favoriteRoutes); 
-
-
 /**
  * Initializes and starts the Express server with database connection.
  * 

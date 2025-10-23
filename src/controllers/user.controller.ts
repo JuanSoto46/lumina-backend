@@ -151,7 +151,7 @@ export async function deleteMe(req: AuthRequest, res: Response) {
  * // Body: { currentPassword: "old123", newPassword: "new456", confirmPassword: "new456" }
  * // Response: { message: "Password changed" }
  */
-export async function changePassword(req: AuthRequest, res: Response) {
+export async function changePassword(req: any, res: Response) {
   const { currentPassword, newPassword, confirmPassword } = req.body;
 
   // Basic field validation
