@@ -38,9 +38,6 @@ export async function signUp(req: Request, res: Response) {
     return res.status(400).json({ message: "You must be at least 18 years old to register." });
   }
 
-  // ✅ Nueva validación de fuerza de contraseña
-  const err = validatePasswordStrength(password);
-  if (err) return res.status(400).json({ message: err });
 
   const exists = await User.findOne({ email });
   if (exists) return res.status(409).json({ message: "Email already registered" });
@@ -178,9 +175,6 @@ export async function resetPassword(req: Request, res: Response) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
 
-  // ✅ Validación centralizada
-  const err = validatePasswordStrength(password);
-  if (err) return res.status(400).json({ message: err });
 
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const user = await User.findOne({
