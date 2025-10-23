@@ -13,18 +13,6 @@ import { sendMail } from "../utils/mail.js";
 import { validatePasswordStrength } from "../utils/validatePassword.js"; 
 
 /**
-<<<<<<< HEAD
- * Registers a new user in the database.
- * 
- * Validates required fields, ensures the user is 18 or older,
- * checks password strength, hashes the password, and saves the user.
- *
- * @async
- * @function signUp
- * @param {Request} req - Express request object containing user data.
- * @param {Response} res - Express response object.
- * @returns {Promise<Response>} JSON response with created user info or error message.
-=======
  * Registers a new user in the system.
  * 
  * @async
@@ -40,7 +28,6 @@ import { validatePasswordStrength } from "../utils/validatePassword.js";
  * @throws {400} Missing required fields
  * @throws {409} Email already registered
  * @throws {201} User created successfully
->>>>>>> 2cc50127b5f8f07d4fbc239f66fde65cc3f34e7c
  */
 export async function signUp(req: Request, res: Response) {
   const { firstName, lastName, age, email, password } = req.body;
@@ -52,7 +39,6 @@ export async function signUp(req: Request, res: Response) {
     return res.status(400).json({ message: "You must be at least 18 years old to register." });
   }
 
-  // ✅ Nueva validación de fuerza de contraseña
   const err = validatePasswordStrength(password);
   if (err) return res.status(400).json({ message: err });
 

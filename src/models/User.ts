@@ -7,7 +7,13 @@
  */
 
 import mongoose, { Schema, Document } from "mongoose";
-
+export interface IFavorite {
+  id: string;
+  title: string;
+  url: string;
+  thumbnail: string;
+  addedAt: Date;
+}
 /**
  * User interface extending Mongoose Document for TypeScript type safety.
  * 
@@ -91,7 +97,20 @@ export interface IUser extends Document {
    * @deprecated Use passwordResetTokenExp instead
    */
   resetTokenExp?: Date;
+
+  favorites: IFavorite[];
+
 }
+
+/* The `favoriteSchema` constant is defining a Mongoose schema for the `IFavorite` interface. It
+specifies the structure of the `IFavorite` object with the following properties: */
+const favoriteSchema = new Schema<IFavorite>({
+  id: { type: String, required: true },
+  title: { type: String, required: true },
+  url: { type: String, required: true },
+  thumbnail: { type: String, required: true },
+  addedAt: { type: Date, default: Date.now },
+});
 
 /**
  * Mongoose schema definition for User collection.
@@ -135,13 +154,20 @@ const userSchema = new Schema<IUser>(
     resetToken: { type: String },
     /** Legacy reset token expiration - deprecated, use passwordResetTokenExp instead */
     resetTokenExp: { type: Date },
+
+    /* The `favorites` field in the `userSchema` is defining an array of `IFavorite` objects using the
+    `favoriteSchema` schema. */
+    favorites: {
+      type: [favoriteSchema],
+      default: [],
+    },
   },
-  { 
+  {
     /** 
      * Enable automatic timestamps (createdAt, updatedAt).
      * Provides audit trail for user account creation and modifications.
      */
-    timestamps: true 
+    timestamps: true
   }
 );
 
