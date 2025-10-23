@@ -19,7 +19,7 @@ import mongoose from "mongoose";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
-import favoriteRoutes from "./routes/favorites.js"; 
+import favoriteRoutes from "./routes/favorites.js";
 
 /**
  * Express application instance.
@@ -179,6 +179,8 @@ app.use("/api/users", userRoutes);
  * @see {@link ./routes/pexels.js} Pexels route handlers
  */
 app.use("/api/pexels", pexelsRoutes);
+
+app.use("/api/favorites", favoriteRoutes);
 
 /**
  * Initializes and starts the Express server with database connection.

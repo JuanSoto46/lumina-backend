@@ -21,36 +21,39 @@ import mongoose, { Schema, Document, Types } from "mongoose";
  * Represents a lightweight subdocument stored inside the user document
  * to keep track of bookmarked entities. Adjust fields to your domain.
  */
-export interface IFavorite extends Document {
+export interface IFavorite {
   /**
-   * Identifier of the referenced entity (post, product, etc.).
-   * Could be an ObjectId or an external string ID.
-   * @type {(Types.ObjectId|string)}
-   * @required
-   */
-  refId: Types.ObjectId | string;
-
-  /**
-   * Entity type discriminator for simple filtering.
-   * Extend enum values if needed by the application.
-   * @type {"post"|"product"|"other"}
-   * @required
-   * @default "other"
-   */
-  refType: "post" | "product" | "other";
-
-  /**
-   * Optional human-readable label or note.
+   * Public video identifier stored as-is (not Mongo _id).
    * @type {string}
-   * @optional
+   * @required
    */
-  label?: string;
+  id: string;
+
+  /**
+   * Human-readable video title.
+   * @type {string}
+   * @required
+   */
+  title: string;
+
+  /**
+   * Public URL to the video file or page.
+   * @type {string}
+   * @required
+   */
+  url: string;
+
+  /**
+   * Thumbnail URL for preview purposes.
+   * @type {string}
+   * @required
+   */
+  thumbnail: string;
 
   /**
    * Timestamp when the favorite was added.
    * @type {Date}
    * @required
-   * @default Date.now
    */
   addedAt: Date;
 }
@@ -61,12 +64,13 @@ export interface IFavorite extends Document {
  *
  * @constant {Schema<IFavorite>} favoriteSchema
  */
-const favoriteSchema = new Schema<IFavorite>(
+const favoriteSchema = new Schema(
   {
-    refId:   { type: Schema.Types.Mixed, required: true },
-    refType: { type: String, enum: ["post", "product", "other"], required: true, default: "other" },
-    label:   { type: String },
-    addedAt: { type: Date, required: true, default: Date.now }
+    id:        { type: String, required: true },
+    title:     { type: String, required: true },
+    url:       { type: String, required: true },
+    thumbnail: { type: String, required: true },
+    addedAt:   { type: Date, default: Date.now, required: true },
   },
   { _id: false }
 );
