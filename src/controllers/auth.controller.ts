@@ -113,9 +113,6 @@ export async function forgotPassword(req: Request, res: Response) {
   user.passwordResetTokenHash = tokenHash;
   user.passwordResetTokenExp = exp;
 
-  user.resetToken = undefined;
-  user.resetTokenExp = undefined;
-
   await user.save();
 
   const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0];
