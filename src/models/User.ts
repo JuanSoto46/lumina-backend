@@ -2,18 +2,81 @@
  * @fileoverview User data model for MongoDB using Mongoose ODM.
  * Defines the user schema with authentication and password reset functionality.
  * @module models/User
- * @version 1.0.0
+ * @version 1.1.0
  * @requires mongoose
  */
 
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
+
+/* ------------------------------------------------------------------ */
+/* Favorite subdocument (added to fix missing IFavorite/favoriteSchema)*/
+/* ------------------------------------------------------------------ */
+
+/**
+ * Favorite interface for TypeScript type safety.
+ *
+ * @interface IFavorite
+ * @extends {Document}
+ * @description
+ * Represents a lightweight subdocument stored inside the user document
+ * to keep track of bookmarked entities. Adjust fields to your domain.
+ */
 export interface IFavorite {
+  /**
+   * Public video identifier stored as-is (not Mongo _id).
+   * @type {string}
+   * @required
+   */
   id: string;
+
+  /**
+   * Human-readable video title.
+   * @type {string}
+   * @required
+   */
   title: string;
+
+  /**
+   * Public URL to the video file or page.
+   * @type {string}
+   * @required
+   */
   url: string;
+
+  /**
+   * Thumbnail URL for preview purposes.
+   * @type {string}
+   * @required
+   */
   thumbnail: string;
+
+  /**
+   * Timestamp when the favorite was added.
+   * @type {Date}
+   * @required
+   */
   addedAt: Date;
 }
+
+/**
+ * Mongoose sub-schema for favorites.
+ * Kept without its own _id to avoid bloating arrays.
+ *
+ * @constant {Schema<IFavorite>} favoriteSchema
+ */
+const favoriteSchema = new Schema(
+  {
+    id:        { type: String, required: true },
+    title:     { type: String, required: true },
+    url:       { type: String, required: true },
+    thumbnail: { type: String, required: true },
+    addedAt:   { type: Date, default: Date.now, required: true },
+  },
+  { _id: false }
+);
+
+/* --------------------------------- User --------------------------------- */
+
 /**
  * User interface extending Mongoose Document for TypeScript type safety.
  * 
@@ -98,19 +161,14 @@ export interface IUser extends Document {
    */
   resetTokenExp?: Date;
 
+  /**
+   * Array of user favorites stored as subdocuments.
+   * @type {IFavorite[]}
+   * @required
+   * @default []
+   */
   favorites: IFavorite[];
-
 }
-
-/* The `favoriteSchema` constant is defining a Mongoose schema for the `IFavorite` interface. It
-specifies the structure of the `IFavorite` object with the following properties: */
-const favoriteSchema = new Schema<IFavorite>({
-  id: { type: String, required: true },
-  title: { type: String, required: true },
-  url: { type: String, required: true },
-  thumbnail: { type: String, required: true },
-  addedAt: { type: Date, default: Date.now },
-});
 
 /**
  * Mongoose schema definition for User collection.
@@ -137,37 +195,39 @@ const userSchema = new Schema<IUser>(
     /** User's first name - required field */
     firstName: { type: String, required: true },
     /** User's last name - required field */
-    lastName: { type: String, required: true },
+    lastName:  { type: String, required: true },
     /** User's age - required numeric field */
-    age: { type: Number, required: true },
+    age:       { type: Number, required: true },
     /** User's email - unique and indexed for authentication */
-    email: { type: String, required: true, unique: true, index: true },
+    email:     { type: String, required: true, unique: true, index: true },
     /** Bcrypt hashed password - required for authentication */
     passwordHash: { type: String, required: true },
 
     /** SHA256 hash of password reset token - indexed for efficient lookups */
     passwordResetTokenHash: { type: String, index: true },
     /** Expiration date for password reset token */
-    passwordResetTokenExp: { type: Date },
+    passwordResetTokenExp:  { type: Date },
 
     /** Legacy reset token field - deprecated, use passwordResetTokenHash instead */
-    resetToken: { type: String },
+    resetToken:   { type: String },
     /** Legacy reset token expiration - deprecated, use passwordResetTokenExp instead */
-    resetTokenExp: { type: Date },
+    resetTokenExp:{ type: Date },
 
-    /* The `favorites` field in the `userSchema` is defining an array of `IFavorite` objects using the
-    `favoriteSchema` schema. */
+    /**
+     * The `favorites` field defines an array of `IFavorite` subdocuments
+     * using the `favoriteSchema` for structure and validation.
+     */
     favorites: {
       type: [favoriteSchema],
-      default: [],
-    },
+      default: []
+    }
   },
-  {
+  { 
     /** 
      * Enable automatic timestamps (createdAt, updatedAt).
      * Provides audit trail for user account creation and modifications.
      */
-    timestamps: true
+    timestamps: true 
   }
 );
 
