@@ -20,6 +20,8 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
 import favoriteRoutes from "./routes/favorites.js";
+import commentRoutes from "./routes/comments.js";
+
 
 /**
  * Express application instance.
@@ -180,7 +182,29 @@ app.use("/api/users", userRoutes);
  */
 app.use("/api/pexels", pexelsRoutes);
 
+/**
+ * Favorites routes for storing and retrieving user favorite videos.
+ *
+ * @route /api/favorites
+ * @description
+ * - Provides endpoints to add, remove and list favorites tied to authenticated users.
+ * - Handlers are implemented in ./routes/favorites.js
+ * @see {@link ./routes/favorites.js}
+ */
 app.use("/api/favorites", favoriteRoutes);
+
+/**
+ * Comments routes for managing video comments.
+ *
+ * @route /api/comments
+ * @description
+ * - Exposes endpoints to create, read, update and delete comments.
+ * - Some endpoints require authentication; behaviour is implemented in middleware/controllers.
+ * @see {@link ./routes/comments.js}
+ */
+app.use("/api/comments", commentRoutes); 
+ 
+
 
 /**
  * Initializes and starts the Express server with database connection.
