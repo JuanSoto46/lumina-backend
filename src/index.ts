@@ -21,6 +21,7 @@ import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
 import favoriteRoutes from "./routes/favorites.js";
 import commentRoutes from "./routes/comments.js";
+import ratingRoutes from "./routes/ratings.js";
 
 
 /**
@@ -203,7 +204,19 @@ app.use("/api/favorites", favoriteRoutes);
  * @see {@link ./routes/comments.js}
  */
 app.use("/api/comments", commentRoutes); 
- 
+
+/**
+ * Rating routes for managing video ratings.
+ *
+ * @route /api/ratings
+ * @description
+ * - Provides endpoints to add, update and retrieve video ratings
+ * - Allows users to rate videos and get rating statistics
+ * - Some operations require authentication
+ * - Handlers are implemented in ./routes/ratings.js
+ * @see {@link ./routes/ratings.js} Rating route handlers
+ */
+app.use("/api/ratings", ratingRoutes);
 
 
 /**
