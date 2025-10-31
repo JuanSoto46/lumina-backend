@@ -20,10 +20,6 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import pexelsRoutes from "./routes/pexels.js";
 import favoriteRoutes from "./routes/favorites.js";
-import commentRoutes from "./routes/comments.js";
-import ratingRoutes from "./routes/ratings.js";
-import subtitlesRoutes from "./routes/subtitles.js";
-
 
 /**
  * Express application instance.
@@ -184,60 +180,7 @@ app.use("/api/users", userRoutes);
  */
 app.use("/api/pexels", pexelsRoutes);
 
-/**
- * Favorites routes for storing and retrieving user favorite videos.
- *
- * @route /api/favorites
- * @description
- * - Provides endpoints to add, remove and list favorites tied to authenticated users.
- * - Handlers are implemented in ./routes/favorites.js
- * @see {@link ./routes/favorites.js}
- */
 app.use("/api/favorites", favoriteRoutes);
-
-/**
- * Comments routes for managing video comments.
- *
- * @route /api/comments
- * @description
- * - Exposes endpoints to create, read, update and delete comments.
- * - Some endpoints require authentication; behaviour is implemented in middleware/controllers.
- * @see {@link ./routes/comments.js}
- */
-app.use("/api/comments", commentRoutes); 
-
-/**
- * Rating routes for managing video ratings.
- *
- * @route /api/ratings
- * @description
- * - Provides endpoints to add, update and retrieve video ratings
- * - Allows users to rate videos and get rating statistics
- * - Some operations require authentication
- * - Handlers are implemented in ./routes/ratings.js
- * @see {@link ./routes/ratings.js} Rating route handlers
- */
-app.use("/api/ratings", ratingRoutes);
-
-/**
- * Subtitles Routes
- * 
- * Handles subtitle generation and management for videos.
- * 
- * Available endpoints:
- * - POST /api/subtitles/generate - Generate subtitles from audio file
- * - POST /api/subtitles/generate-from-url - Generate subtitles from video URL
- * - GET /api/subtitles/:videoId - Get existing subtitles for a video
- * 
- * Features:
- * - AI-powered subtitle generation using OpenAI Whisper
- * - Support for multiple audio formats (mp3, wav, m4a, etc.)
- * - SRT format output for maximum compatibility
- * - Automatic subtitle generation for Pexels videos
- * @see {@link ./routes/subtitles.js} Subtitle route handlers
- */
-app.use("/api/subtitles", subtitlesRoutes);
-
 
 /**
  * Initializes and starts the Express server with database connection.

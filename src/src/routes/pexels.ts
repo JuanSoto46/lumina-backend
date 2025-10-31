@@ -14,9 +14,7 @@ import {
   getVideoById, 
   getPopularVideos, 
   getPeliculas,
-  healthCheck,
-  testSubtitles,
-  getVideosForFrontend 
+  healthCheck 
 } from '../controllers/pexels.controller.js';
 
 const router = Router();
@@ -35,11 +33,10 @@ router.get('/', healthCheck);
 /**
  * GET /videos/popular
  * 
- * Fetches a list of popular videos from the Pexels API with subtitles.
+ * Fetches a list of popular videos from the Pexels API.
  * 
  * @route GET /videos/popular
  * @access Public
- * @param {string} [language=es] - Language for subtitles ('es' for Spanish, 'en' for English)
  */
 router.get('/videos/popular', getPopularVideos);
 
@@ -76,29 +73,5 @@ router.get('/videos/search', getVideos);
  * @param {number} id - The Pexels video ID.
  */
 router.get('/videos/:id', getVideoById);
-
-/**
- * GET /test/subtitles
- * 
- * Test endpoint to verify subtitle generation functionality
- * 
- * @route GET /test/subtitles
- * @access Public
- * @param {boolean} [hasAudio] - Query parameter to test audio vs visual subtitles
- * @param {string} [language=es] - Language for subtitles ('es' for Spanish, 'en' for English)
- */
-router.get('/test/subtitles', testSubtitles);
-
-/**
- * GET /frontend/videos
- * 
- * Frontend-optimized endpoint for popular videos with guaranteed subtitle format
- * 
- * @route GET /frontend/videos
- * @access Public
- * @param {string} [language=es] - Language for subtitles ('es' for Spanish, 'en' for English)
- * @returns {Array} Videos with guaranteed subtitle structure for frontend consumption
- */
-router.get('/frontend/videos', getVideosForFrontend);
 
 export default router;
