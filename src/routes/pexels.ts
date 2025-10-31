@@ -16,7 +16,8 @@ import {
   getPeliculas,
   healthCheck,
   testSubtitles,
-  getVideosForFrontend 
+  getVideosForFrontend,
+  getVideoSubtitles 
 } from '../controllers/pexels.controller.js';
 
 const router = Router();
@@ -100,5 +101,19 @@ router.get('/test/subtitles', testSubtitles);
  * @returns {Array} Videos with guaranteed subtitle structure for frontend consumption
  */
 router.get('/frontend/videos', getVideosForFrontend);
+
+/**
+ * GET /video/:videoId/subtitles
+ * 
+ * Get subtitles for a specific video in WebVTT format
+ * 
+ * @route GET /video/:videoId/subtitles
+ * @access Public
+ * @param {string} videoId - The unique identifier of the video
+ * @param {string} [language=es] - Language for subtitles (es, en, fr, de, etc.)
+ * @param {boolean} [hasAudio] - Whether the video has audio content
+ * @returns {text/vtt} WebVTT formatted subtitle file for video players
+ */
+router.get('/video/:videoId/subtitles', getVideoSubtitles);
 
 export default router;
